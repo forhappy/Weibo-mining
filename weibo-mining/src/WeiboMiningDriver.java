@@ -14,6 +14,8 @@ class WeiboMiningDriver {
 		WeiboSplitter weiboSplitter = new WeiboSplitter();
 		
 		StopWords stopWords = new StopWords();
+		SynonymWords synonymWords = new SynonymWords();
+		
 		// 微博文件名
 		String fileName = "/home/forhappy/SCM-Repos/GIT/Weibo-mining/weibo-mining/src/weibo/weibo-example.xml";
 
@@ -41,6 +43,8 @@ class WeiboMiningDriver {
 				logger.info("分词前微博文本：\n" + weiboText);
 				logger.info("分词后微博文本：\n" + weiboTextSplitted);
 				logger.info("除去停用词后的微博文本：\n" + stopWords.remove(weiboTextSplitted));
+				logger.info("同义词扩展后的微博文本：\n" + 
+						synonymWords.extendSynonymWords(stopWords.remove(weiboTextSplitted)));
 				
 				WeiboXMLHandler.Weibo weiboSplitted = new WeiboXMLHandler.Weibo();
 				
