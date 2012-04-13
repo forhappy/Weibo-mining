@@ -28,14 +28,14 @@ public class WeiboInvertedIndex implements Iterable{
 	private Map<String, List<Map<String, Integer>>> mapInvertedIndex = 
 		new HashMap<String, List<Map<String, Integer>>>();
 	
-	private List<Map<String, Integer>> getInvertedIndex(String word) {
+	public List<Map<String, Integer>> getInvertedIndex(String word) {
 		return mapInvertedIndex.get(word);
 	}
 	
 	public Map<String, Integer> wordCount(String sentence) {
 		Map<String, Integer> map = new HashMap<String, Integer>();
 		Set<String> tmpWordSet = new HashSet<String>();
-		String[] words = sentence.split(" ");
+		String[] words = sentence.split("\\s+");
 		for (int i = 0; i < words.length; i++) {
 			if (!tmpWordSet.contains(words[i]))
 			{
@@ -67,7 +67,7 @@ public class WeiboInvertedIndex implements Iterable{
 		Map<String, Integer> mapWordCount = wordCount(weiboText);
 		
 		//微博切分
-		String[] words = weiboText.split(" ");
+		String[] words = weiboText.split("\\s+");
 		
 		//临时集合，记录微博文本中已经处理的词
 		Set<String> tmpWordSet = new HashSet<String>();

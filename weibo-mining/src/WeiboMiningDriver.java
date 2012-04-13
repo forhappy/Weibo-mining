@@ -30,9 +30,9 @@ class WeiboMiningDriver {
 		/**
 		 * 用户词典测试
 		 */
-		String input = "华中科技大学 爱国者 天敏 天国之门阿尔马格罗";
+//		String input = "华中科技大学 爱国者 天敏 天国之门阿尔马格罗";
 		
-		logger.info("\n" + input + " 分词后:\n" + weiboSplitter.weiboSplitProcessing(input));
+//		logger.info("\n" + input + " 分词后:\n" + weiboSplitter.weiboSplitProcessing(input));
 		
 		try {
 			reader.read();
@@ -44,7 +44,7 @@ class WeiboMiningDriver {
 				 */
 				String weiboTextSplitted = weiboSplitter.weiboSplitProcessing(weiboText);
 				
-				
+				//测试分词，去除停用词，同义词扩展
 				logger.info("分词前微博文本：\n" + weiboText);
 				logger.info("分词后微博文本：\n" + weiboTextSplitted);
 				logger.info("除去停用词后的微博文本：\n" + stopWords.remove(weiboTextSplitted));
@@ -79,10 +79,11 @@ class WeiboMiningDriver {
 			//总词数
 			System.out.println("总词数: " + cs.getNumberOfTokens());
 			
-			//Unique 词的总数
+			//特征词的总数
 			System.out.println("Unique 词的总数: " + cs.getNumberOfUniqueTerms());
 			
-			WeiboInvertedIndex weiboInvertedIndex = cs.getWeiboInvertedIndex();
+			//测试倒排索引
+		/*	WeiboInvertedIndex weiboInvertedIndex = cs.getWeiboInvertedIndex();
 			
 			Iterator iter = weiboInvertedIndex.iterator();
 			while (iter.hasNext()) {
@@ -98,7 +99,7 @@ class WeiboMiningDriver {
 								" 出现了 " + entryM.getValue() + " 次");
 					}
 				}
-			}
+			}*/
 			
 		} catch (Exception ex) {
 			logger.debug(ex.getMessage());

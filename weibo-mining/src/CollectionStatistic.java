@@ -32,7 +32,7 @@ public class CollectionStatistic {
 	private long numberOfUniqueTerms = 0L;
 	
 	/**
-	 * 微博中出现的所有的词,只计算一次
+	 * 所有微博中出现的特征词
 	 */
 	private Set<String> setUniqueTerms = new TreeSet<String>();
 	
@@ -144,7 +144,7 @@ public class CollectionStatistic {
 					//微博中的一个词.
 					String term = (String) entryInvertedIndex.getKey();
 					if (!setUniqueTerms.contains(term)) {
-						//加入到单一词集合中
+						//加入到特征词集合中
 						setUniqueTerms.add(term);
 						//微博中出现的所有的词,只计算一次
 						numberOfUniqueTerms++;

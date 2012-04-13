@@ -62,7 +62,7 @@ public class WeiboInvertedIndexTest {
 			System.out.println(entry.getKey());
 			System.out.println(entry.getValue());
 		}*/
-		
+
 		Iterator iter = weiboInvertedIndex.iterator();
 		while (iter.hasNext()) {
 			Entry entry = (Entry) iter.next();
