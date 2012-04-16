@@ -64,7 +64,9 @@ public class WeightCalculatorTest {
 		System.out.println("特征词集合: " + cs.getSetUniqueTerms());
 		//权重测试类
 		
-		WeightCalculator wc = new WeightCalculator(cs, null);
+		WeightCalculator wc = new WeightCalculator(cs, "weight-output.txt");
+		wc.weightInMemory(weibo);
+		wc.flush();
 		
 		System.out.println(wc.weight(weibo));
 

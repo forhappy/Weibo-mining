@@ -1,9 +1,16 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -12,6 +19,13 @@ import java.util.TreeMap;
  *
  */
 public class WeightCalculator {
+	
+	/**
+	 * logger.
+	 */
+	public static final Logger logger = 
+		LoggerFactory.getLogger(WeightCalculator.class);
+	
 	/**
 	 * 微博语料集统计类
 	 */
@@ -26,6 +40,12 @@ public class WeightCalculator {
 	 * 所有微博中出现的特征词
 	 */
 	private Set<String> setUniqueTerms = null;
+	
+	/**
+	 * 保存微博每个词的权重
+	 */
+	private Map<String, Map<String, Double>> mapWeight = 
+		new TreeMap<String, Map<String,Double>>();
 	
 	/**
 	 * @return the cs
@@ -67,12 +87,12 @@ public class WeightCalculator {
 	}
 
 	/**
-	 * 统计某一词项的权重
+	 * 统计某一词项的权重: Okapi's TF + IDF
 	 * @param term 需要计算权重的特征词
 	 * @param weibo 特征次所在的微博
 	 * @return 词的权重
 	 */
-	public double calculateTermWeight(String term, WeiboXMLHandler.Weibo weibo) {
+	public double calculateTermWeightTFIDF(String term, WeiboXMLHandler.Weibo weibo) {
 		/**
 		 * Okapi's TF + IDF
 		 * w(t, d) = k1 * tf / (tf + k1 * (1 - b + b * ld / E(l))) * log2((N - df + 0.5) / (df + 0.5))
@@ -108,11 +128,57 @@ public class WeightCalculator {
 		Iterator iterSetUniqueTerms = setUniqueTerms.iterator();
 		while (iterSetUniqueTerms.hasNext()) {
 			String term = (String) iterSetUniqueTerms.next();
-			double weight = calculateTermWeight(term, weibo);
+			double weight = calculateTermWeightTFIDF(term, weibo);
 			mapTermWeight.put(term, new Double(weight));
 		}
 		mapWeight.put(docNo, mapTermWeight);
 		return mapWeight;
+	}
+	
+	/**
+	 * 将计算得到的权重保存到内存中中
+	 * @param weibo 需要计算权重的微博
+	 */
+	@SuppressWarnings("rawtypes")
+	public void weightInMemory(WeiboXMLHandler.Weibo weibo) {
+		String docNo = weibo.getDocNo();
+		//特征词及其权重(<特征词1, 权重1> <特征词2, 权重2> ... <特征词n, 权重n>)
+		Map<String, Double> mapTermWeight = new TreeMap<String, Double>();
+		Iterator iterSetUniqueTerms = setUniqueTerms.iterator();
+		while (iterSetUniqueTerms.hasNext()) {
+			String term = (String) iterSetUniqueTerms.next();
+			double weight = calculateTermWeightTFIDF(term, weibo);
+			mapTermWeight.put(term, new Double(weight));
+		}
+		mapWeight.put(docNo, mapTermWeight);
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public void flush() {
+		File file = new File(fileName);
+		try {
+			FileWriter fileWriter = new FileWriter(file);
+			Iterator iterMapWeight = mapWeight.entrySet().iterator();
+			while(iterMapWeight.hasNext()) {
+				Entry entryWeibo = (Entry) iterMapWeight.next();
+				@SuppressWarnings("unchecked")
+				Map<String, Double> mapTermWeight = (Map<String, Double>) entryWeibo.getValue();
+				Iterator iterTermWeight = mapTermWeight.entrySet().iterator();
+				StringBuilder weiboWeight = new StringBuilder();
+				while(iterTermWeight.hasNext()) {
+					Entry entryWeight = (Entry) iterTermWeight.next();
+					Double weight = (Double) entryWeight.getValue();
+					weiboWeight.append(weight);
+					weiboWeight.append(" ");
+				}
+				weiboWeight.append("\r\n");
+				fileWriter.write(weiboWeight.toString());
+			}
+			fileWriter.close();
+		} catch (IOException e) {
+			logger.debug(e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	/**
