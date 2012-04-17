@@ -95,7 +95,8 @@ public class WeightCalculator {
 	public double calculateTermWeightTFIDF(String term, WeiboXMLHandler.Weibo weibo) {
 		/**
 		 * Okapi's TF + IDF
-		 * w(t, d) = k1 * tf / (tf + k1 * (1 - b + b * ld / E(l))) * log2((N - df + 0.5) / (df + 0.5))
+		 * w(t, d) = k1 * tf / (tf + k1 * (1 - b + b * ld / E(l))) 
+		 *     * log2((N - df + 0.5) / (df + 0.5))
 		 */
 		if (!setUniqueTerms.contains(term)) return 0.0;
 		
@@ -105,9 +106,60 @@ public class WeightCalculator {
 		long documentLength = documentLength(weibo);
 		double k1 = 0.75;
 		double b = 0.4;
-		double tf = k1 * termFrequency / (termFrequency + k1 * (1 - b + b * documentLength / cs.getAverageWeiboLength()));
-		double idf = Math.log((numberOfWeibos - documentFrequency + 0.5) / (documentFrequency + 0.5));
+		double tf = k1 * termFrequency / (termFrequency + k1 * 
+				(1 - b + b * documentLength / cs.getAverageWeiboLength()));
+		double idf = Math.log((double)((numberOfWeibos - documentFrequency + 0.5)) 
+				/ (documentFrequency + 0.5));
 		return tf * idf;
+	}
+	
+	/**
+	 * 统计某一词项的权重: TFC w(t, d) = log(tf + 1.0) * log(N/df) / sqrt(sum(log(tf + 1.0) * log(N/df))^2)
+	 * @param term 需要计算权重的特征词
+	 * @param weibo 特征次所在的微博
+	 * @return 词的权重
+	 */
+	public double calculateTermWeightTFC(String term, WeiboXMLHandler.Weibo weibo) {
+		if (!setUniqueTerms.contains(term)) return 0.0;
+		long numberOfWeibos = cs.getNumberOfWeibos();
+		long termFrequency = termFrequency(term, weibo);
+		long documentFrequency = documentFrequency(term);
+		double tfIdf = Math.log(termFrequency + 1.0) * Math.log((double)(numberOfWeibos) / documentFrequency);
+		double norm = 0.0;
+		String weiboText = weibo.getWeiboText();
+		String[] terms = weiboText.split("\\s+");
+		for (String otherTerm : terms) {
+			long otherTermFrequency = termFrequency(otherTerm, weibo);
+			long otherTermDocumentFrequency = documentFrequency(otherTerm);
+			double otherTermTfIdf = 
+				Math.log(otherTermFrequency + 1.0) * Math.log((double)(numberOfWeibos) / otherTermDocumentFrequency);
+			norm = norm + Math.pow(otherTermTfIdf, 2.0);
+		}
+		return tfIdf / Math.sqrt(norm);
+	}
+	
+	/**
+	 * 统计某一词项的权重: TFC w(t, d) = log(tf + 1.0) * log(N/df) / sqrt(sum(log(tf + 1.0) * log(N/df))^2)
+	 * @param term 需要计算权重的特征词
+	 * @param weibo 特征次所在的微博
+	 * @return 词的权重
+	 */
+	public double calculateTermWeightEntropy(String term, WeiboXMLHandler.Weibo weibo) {
+		if (!setUniqueTerms.contains(term)) return 0.0;
+		long numberOfWeibos = cs.getNumberOfWeibos();
+		long termFrequency = termFrequency(term, weibo);
+		double tf = Math.log((double)(termFrequency + 1.0));
+		double termsEntropy = 0.0;
+		String weiboText = weibo.getWeiboText();
+		String[] terms = weiboText.split("\\s+");
+		for (String otherTerm : terms) {
+			long otherTermFrequency = termFrequency(otherTerm, weibo);
+			long otherTermDocumentFrequency = documentFrequency(otherTerm);
+			double termEntropy = 
+				(otherTermFrequency / otherTermDocumentFrequency) * Math.log((double)(otherTermFrequency) / otherTermDocumentFrequency);
+			termsEntropy = termsEntropy + termEntropy;
+		}
+		return tf *(1 + 1 / Math.log(numberOfWeibos) * termsEntropy);
 	}
 	
 
@@ -128,7 +180,8 @@ public class WeightCalculator {
 		Iterator iterSetUniqueTerms = setUniqueTerms.iterator();
 		while (iterSetUniqueTerms.hasNext()) {
 			String term = (String) iterSetUniqueTerms.next();
-			double weight = calculateTermWeightTFIDF(term, weibo);
+//			double weight = calculateTermWeightTFIDF(term, weibo);
+			double weight = calculateTermWeightTFC(term, weibo);
 			mapTermWeight.put(term, new Double(weight));
 		}
 		mapWeight.put(docNo, mapTermWeight);
@@ -148,6 +201,8 @@ public class WeightCalculator {
 		while (iterSetUniqueTerms.hasNext()) {
 			String term = (String) iterSetUniqueTerms.next();
 			double weight = calculateTermWeightTFIDF(term, weibo);
+//			double weight = calculateTermWeightTFC(term, weibo);
+//			double weight = calculateTermWeightEntropy(term, weibo);
 			mapTermWeight.put(term, new Double(weight));
 		}
 		mapWeight.put(docNo, mapTermWeight);

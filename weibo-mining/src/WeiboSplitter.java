@@ -39,6 +39,11 @@ public class WeiboSplitter {
 		logger.info("导入用户词个数: " + userDictsCounter);
 	}
 
+	public String weiboTrim(String input) {
+		String weiboTextTrimmed = input.replaceAll("\\w+", "");
+		return weiboTextTrimmed;
+		
+	}
 
 	public String weiboSplitProcessing(String input) {
 		try {

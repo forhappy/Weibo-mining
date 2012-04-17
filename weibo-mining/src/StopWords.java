@@ -104,7 +104,7 @@ public class StopWords {
 	}
 	
 	public String remove(String sentence) {
-		String regex = " ";
+		String regex = "\\s+";
 		String[] words = sentence.split(regex);
 		StringBuilder stopWordRemoved = new StringBuilder();
 		for (int i = 0; i < words.length; i++) {

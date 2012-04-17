@@ -21,12 +21,25 @@ class WeiboMiningDriver {
 		// 微博统计类
 		CollectionStatistic cs = new CollectionStatistic();
 		
-		// 微博文件名
-		String fileName = "/home/forhappy/SCM-Repos/GIT/Weibo-mining/weibo-mining/src/weibo/weibo-example.xml";
-
-		XmlWeiboReader reader = new XmlWeiboReader(fileName);
-		XmlWeiboWriter writer = new XmlWeiboWriter();
 		
+		
+		// 微博文件名
+		String weiboFileName = 
+			"/home/forhappy/SCM-Repos/GIT/Weibo-mining/weibo-mining/src/weibo/weibo.xml";
+		//分词处理之后的文件名
+		String splittedWeiboFileName = 
+			"/home/forhappy/SCM-Repos/GIT/Weibo-mining/weibo-mining/src/output/weibo-splitted.xml";
+		//微博权重文件名
+		String weightFileName = 
+			"/home/forhappy/SCM-Repos/GIT/Weibo-mining/weibo-mining/src/output/weight-output.txt";
+		
+		
+		XmlWeiboReader reader = new XmlWeiboReader(weiboFileName);
+		XmlWeiboWriter writer = 
+			new XmlWeiboWriter(splittedWeiboFileName);
+		
+		//需再次读入微博文件，进行权重计算的处理。
+		XmlWeiboReader splittedWeiboReader = new XmlWeiboReader(splittedWeiboFileName);
 		/**
 		 * 用户词典测试
 		 */
@@ -39,15 +52,21 @@ class WeiboMiningDriver {
 			while (reader.hasNext()) {
 				WeiboXMLHandler.Weibo weibo = reader.next();
 				String weiboText = weibo.getWeiboText();
+				String weiboTextTrimmed = weiboSplitter.weiboTrim(weiboText);
 				/**
 				 * 分词处理
 				 */
-				String weiboTextSplitted = weiboSplitter.weiboSplitProcessing(weiboText);
+				String weiboTextSplitted = weiboSplitter.weiboSplitProcessing(weiboTextTrimmed);
+				String weiboTextStopWordsRemoved = stopWords.remove(weiboTextSplitted);
+				String[] terms = weiboTextStopWordsRemoved.split("\\s+");
+				
+				//微博分词后长度小于 3 的微博去除掉。
+				if(terms.length <= 9) continue;
 				
 				//测试分词，去除停用词，同义词扩展
-				logger.info("分词前微博文本：\n" + weiboText);
-				logger.info("分词后微博文本：\n" + weiboTextSplitted);
-				logger.info("除去停用词后的微博文本：\n" + stopWords.remove(weiboTextSplitted));
+//				logger.info("分词前微博文本：\n" + weiboText);
+//				logger.info("分词后微博文本：\n" + weiboTextSplitted);
+//				logger.info("除去停用词后的微博文本：\n" + stopWords.remove(weiboTextSplitted));
 				logger.info("同义词扩展后的微博文本：\n" + 
 						synonymWords.extendSynonymWords(stopWords.remove(weiboTextSplitted)));
 				
@@ -57,7 +76,7 @@ class WeiboMiningDriver {
 				weiboSplitted.setUser(weibo.getUser());
 //				weiboSplitted.setWeiboText(weiboTextSplitted);
 				weiboSplitted.setWeiboText(
-						synonymWords.extendSynonymWords(stopWords.remove(weiboTextSplitted)));
+						synonymWords.extendSynonymWords(weiboTextStopWordsRemoved));
 				
 				cs.addWeiboForStatistic(weiboSplitted);
 				/**
@@ -80,7 +99,7 @@ class WeiboMiningDriver {
 			System.out.println("总词数: " + cs.getNumberOfTokens());
 			
 			//特征词的总数
-			System.out.println("Unique 词的总数: " + cs.getNumberOfUniqueTerms());
+			System.out.println("特征词的总数: " + cs.getNumberOfUniqueTerms());
 			
 			//测试倒排索引
 		/*	WeiboInvertedIndex weiboInvertedIndex = cs.getWeiboInvertedIndex();
@@ -100,6 +119,16 @@ class WeiboMiningDriver {
 					}
 				}
 			}*/
+			
+			
+			//测试权重计算
+			WeightCalculator wc = new WeightCalculator(cs, weightFileName);
+			splittedWeiboReader.read();
+			while (splittedWeiboReader.hasNext()) {
+				WeiboXMLHandler.Weibo weibo = splittedWeiboReader.next();
+				wc.weightInMemory(weibo);
+			}
+			wc.flush();
 			
 		} catch (Exception ex) {
 			logger.debug(ex.getMessage());

@@ -21,7 +21,7 @@ public class SynonymWords {
 	public static final Logger logger = 
 		LoggerFactory.getLogger(SynonymWords.class);
 	
-	private String fileName = "/home/forhappy/SCM-Repos/GIT/Weibo-mining/weibo-mining/src/synonym-words.txt";
+	private String fileName = "/home/forhappy/SCM-Repos/GIT/Weibo-mining/weibo-mining/src/synonym-words-utf8.txt";
 	
 	/**
 	 * iterator of record.
@@ -68,18 +68,22 @@ public class SynonymWords {
 		try {
 			File file = new File(fileName);
 
-			InputStreamReader isr = new InputStreamReader (new FileInputStream(file),"GBK");
+			InputStreamReader isr = new InputStreamReader (new FileInputStream(file),"UTF-8");
 			BufferedReader br=new BufferedReader(isr);
 			String line; 
 			while (br.ready()) {
 				line = br.readLine();
-				String words[] = line.split(" ");
-				String word = words[0];
-				List<String> synonyms = new ArrayList<String>(); 
-				for (int i = 1; i < words.length; i++) {
-					synonyms.add(words[i]);
+				String words[] = line.split("\\s");
+				if (words.length > 1) {
+					String word = words[0];
+					if (!mapSynonymWords.containsKey(word)) {
+						List<String> synonyms = new ArrayList<String>(); 
+						for (int i = 1; i < words.length; i++) {
+							synonyms.add(words[i]);
+						}
+						mapSynonymWords.put(word, synonyms);
+					}
 				}
-				mapSynonymWords.put(word, synonyms);
 			}
 			br.close();
 			isr.close();
@@ -133,7 +137,7 @@ public class SynonymWords {
 	}
 	
 	public String extendSynonymWords(String sentence) {
-		String regex = " ";
+		String regex = "\\s+";
 		String[] words = sentence.split(regex);
 		StringBuilder synonymWordsAdded = new StringBuilder();
 		for (int i = 0; i < words.length; i++) {

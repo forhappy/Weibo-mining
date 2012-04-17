@@ -21,7 +21,7 @@ public class SynonymWordsTest {
 //				System.out.println(synonym);
 //			}
 //		}
-		String sentence = "今天 老公 吃 自助餐 ";
+		String sentence = "今天 老公 吃 自助餐 好人 全世界 入眠";
 		
 		System.out.println("同义词扩展前："+ sentence);
 		System.out.println("同义词扩展后，一次扩展："+ synonymWords.extendSynonymWords(sentence));
